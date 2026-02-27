@@ -55,39 +55,37 @@ class DefaultFirebaseOptions {
 
   // FOR DEV
   static const FirebaseOptions androidDev = FirebaseOptions(
-    apiKey: 'AIzaSyBlZbMrxKqpXPAdjP5xJCqLJ3TjHQNPpgc',
-    appId: '1:662885874609:android:afb45f4d40325380c49b90',
-    messagingSenderId: '662885874609',
-    projectId: 'peanut-dev',
-    storageBucket: 'peanut-dev.appspot.com',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    storageBucket: '',
   );
   static const FirebaseOptions iosDev = FirebaseOptions(
-    apiKey: 'AIzaSyB7fHWgaZeK5skdAswKqsRCvhyD0I7FaAE',
-    appId: '1:662885874609:ios:2ed66f2033e02043c49b90',
-    messagingSenderId: '662885874609',
-    projectId: 'peanut-dev',
-    storageBucket: 'peanut-dev.appspot.com',
-    iosClientId:
-        '662885874609-6l7iu6gniqlf42o3ik3fmkpp5rjb783k.apps.googleusercontent.com',
-    iosBundleId: 'com.example.peanut',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    storageBucket: '',
+    iosClientId: '',
+    iosBundleId: '',
   );
 
   // FOR PROD
   static const FirebaseOptions androidProd = FirebaseOptions(
-    apiKey: 'AIzaSyBlZbMrxKqpXPAdjP5xJCqLJ3TjHQNPpgc',
-    appId: '1:662885874609:android:afb45f4d40325380c49b90',
-    messagingSenderId: '662885874609',
-    projectId: 'peanut-dev',
-    storageBucket: 'peanut-dev.appspot.com',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    storageBucket: '',
   );
   static const FirebaseOptions iosProd = FirebaseOptions(
-    apiKey: 'AIzaSyB7fHWgaZeK5skdAswKqsRCvhyD0I7FaAE',
-    appId: '1:662885874609:ios:2ed66f2033e02043c49b90',
-    messagingSenderId: '662885874609',
-    projectId: 'peanut-dev',
-    storageBucket: 'peanut-dev.appspot.com',
-    iosClientId:
-        '662885874609-6l7iu6gniqlf42o3ik3fmkpp5rjb783k.apps.googleusercontent.com',
-    iosBundleId: 'com.example.peanut',
+    apiKey: '',
+    appId: '',
+    messagingSenderId: '',
+    projectId: '',
+    storageBucket: '',
+    iosClientId: '',
+    iosBundleId: '',
   );
 }
