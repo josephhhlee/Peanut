@@ -1,5 +1,5 @@
 
-# peanut
+# Peanut
 A quest-focused gamified mobile app that enables users to discover, pick, or create quests in their vicinity using an interactive map-based interface. Users can explore quests posted by others or set their own, making it a dynamic and engaging platform for local adventures.
 
 #### Peanut App's UI 
@@ -18,4 +18,4 @@ https://github.com/user-attachments/assets/3bdad976-ba89-43ca-b38b-8c80ac4e8ff4
 
 
 
-# peanut
+# Peanut
