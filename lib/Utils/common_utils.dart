@@ -48,7 +48,8 @@ class CommonUtils {
     if (user == null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(size * 0.4),
-        child: SizedBox(
+        child: Container(
+          color: PeanutTheme.primaryColor,
           height: size,
           width: size,
         ),
@@ -114,14 +115,27 @@ class CommonUtils {
               ),
       );
 
-  static Widget loadingIndicator({double size = 30}) => Center(
-        child: LoadingAnimationWidget.discreteCircle(
-          color: PeanutTheme.primaryColor,
-          secondRingColor: PeanutTheme.almostBlack,
-          thirdRingColor: PeanutTheme.secondaryColor,
-          size: size,
-        ),
-      );
+  static Widget loadingIndicator({double size = 30, bool expand = false}) => expand
+      ? Container(
+          width: double.infinity,
+          height: double.infinity,
+          color: PeanutTheme.backGroundColor,
+          alignment: Alignment.center,
+          child: LoadingAnimationWidget.discreteCircle(
+            color: PeanutTheme.primaryColor,
+            secondRingColor: PeanutTheme.almostBlack,
+            thirdRingColor: PeanutTheme.secondaryColor,
+            size: size,
+          ),
+        )
+      : Center(
+          child: LoadingAnimationWidget.discreteCircle(
+            color: PeanutTheme.primaryColor,
+            secondRingColor: PeanutTheme.almostBlack,
+            thirdRingColor: PeanutTheme.secondaryColor,
+            size: size,
+          ),
+        );
 
   static String getDateTimeAgo(int timestamp) {
     var now = DateTime.now();
@@ -156,5 +170,54 @@ class CommonUtils {
     final meters = Geolocator.distanceBetween(currentUserLocation.latitude!, currentUserLocation.longitude!, lat, lng);
     final kilometers = meters / 1000;
     return kilometers < 1 ? "${meters.toStringAsFixed(0)}m" : "${kilometers.toStringAsFixed(1)}km";
+  }
+}
+
+class ScrollToTopButton extends StatefulWidget {
+  final ScrollController controller;
+  final bool reverse;
+  final double offsetToVisible;
+
+  const ScrollToTopButton({super.key, required this.controller, this.reverse = false, this.offsetToVisible = 100});
+
+  @override
+  State<ScrollToTopButton> createState() => _ScrollToTopButtonState();
+}
+
+class _ScrollToTopButtonState extends State<ScrollToTopButton> {
+  Offset offset = const Offset(5, 0);
+
+  @override
+  void initState() {
+    widget.controller.addListener(visibleOn);
+    super.initState();
+  }
+
+  void visibleOn() {
+    if (widget.controller.position.pixels > widget.offsetToVisible) {
+      setState(() => offset = const Offset(0, 0));
+    } else if (widget.controller.position.pixels <= widget.offsetToVisible) {
+      setState(() => offset = const Offset(5, 0));
+    }
+  }
+
+  void scrollToIndex() => widget.controller.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSlide(
+      offset: offset,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOut,
+      child: FloatingActionButton(
+        mini: true,
+        onPressed: scrollToIndex,
+        backgroundColor: PeanutTheme.almostBlack.withOpacity(0.7),
+        child: Icon(
+          widget.reverse ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+          color: PeanutTheme.primaryColor,
+        ),
+      ),
+    );
   }
 }

@@ -10,7 +10,7 @@ import 'package:peanut/App/theme.dart';
 import 'package:peanut/Models/quest_model.dart';
 import 'package:peanut/Models/user_model.dart';
 import 'package:peanut/Services/firestore_service.dart';
-import 'package:peanut/Ui/General/quest_page.dart';
+import 'package:peanut/Ui/Quests/quest_page.dart';
 import 'package:peanut/Ui/Quests/sorting.dart';
 import 'package:peanut/Utils/common_utils.dart';
 import 'package:peanut/Utils/scroll_utils.dart';
@@ -237,7 +237,7 @@ class __QuestListTabState extends State<_QuestListTab> with AutomaticKeepAliveCl
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    if (!_initialised) return Center(child: CommonUtils.loadingIndicator());
+    if (!_initialised) return Center(child: CommonUtils.loadingIndicator(expand: true));
 
     return Container(
       height: MediaQuery.of(context).size.height,

@@ -14,7 +14,7 @@ class PeanutMapViewModel {
   GoogleMapController? mapController;
   ClusterManager<Quest>? manager;
 
-  ValueNotifier<List<Quest>?> subQuestList = ValueNotifier(null);
+  final List<Quest> subQuestList = [];
   final List<Quest> fullQuestList = [];
 
   String? _selectedMarker;
@@ -25,6 +25,7 @@ class PeanutMapViewModel {
   bool initMarkers = false;
 
   late final void Function() _refresh;
+  late final void Function(List<Quest>) subListTrigger;
 
   void init(Function() refresh) {
     _refresh = refresh;
@@ -78,55 +79,58 @@ class PeanutMapViewModel {
   }
 
   void clearSelectedMarker() {
-    subQuestList.value = null;
+    subQuestList.clear();
+    subListTrigger(subQuestList);
     _selectedMarker = null;
     manager?.updateMap();
   }
 
   Future<Marker> Function(Cluster<Quest>) get _markerBuilder => (cluster) async {
-        Future<BitmapDescriptor> getClusterBitmap(double size, {String? text}) async {
-          final PictureRecorder pictureRecorder = PictureRecorder();
-          final Canvas canvas = Canvas(pictureRecorder);
-          final Paint paint1 = Paint()..color = PeanutTheme.almostBlack;
-          final Paint paint2 = Paint()..color = PeanutTheme.white;
-          final Paint paint3 = Paint()..color = cluster.getId() == _selectedMarker ? PeanutTheme.secondaryColor : PeanutTheme.darkOrange;
-
-          canvas.drawCircle(Offset(size / 2, size / 2), size / 3, paint1);
-          canvas.drawCircle(Offset(size / 2, size / 2), size / 3.2, paint2);
-          canvas.drawCircle(Offset(size / 2, size / 2), size / 3.8, paint3);
-
-          if (text != null) {
-            TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
-            painter.text = TextSpan(
-              text: text,
-              style: TextStyle(fontSize: size / 2.5, color: cluster.getId() == _selectedMarker ? PeanutTheme.almostBlack : PeanutTheme.white, fontWeight: FontWeight.normal),
-            );
-            painter.layout();
-            painter.paint(
-              canvas,
-              Offset(size / 2 - painter.width / 2, size / 2 - painter.height / 2),
-            );
-          }
-
-          final img = await pictureRecorder.endRecording().toImage(size.toInt(), size.toInt());
-          final data = await img.toByteData(format: ImageByteFormat.png);
-
-          return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
-        }
-
         final screenWidth = MediaQueryData.fromWindow(WidgetsBinding.instance.window).size.width;
-        var markerSize = (screenWidth * 0.2);
+        var markerSize = (screenWidth * 0.18);
         markerSize = cluster.isMultiple ? markerSize * 1.25 : markerSize;
 
         return Marker(
+          consumeTapEvents: true,
+          draggable: false,
           markerId: MarkerId(cluster.getId()),
           position: cluster.location,
-          onTap: () {
-            subQuestList.value = cluster.items.toList()..sort((a, b) => b.createdOn.compareTo(a.createdOn));
+          anchor: const Offset(0.5, 0.5),
+          onTap: () async {
+            subQuestList.clear();
+            subQuestList.addAll(cluster.items);
+            subQuestList.sort((a, b) => b.createdOn.compareTo(a.createdOn));
+            subListTrigger(subQuestList);
+
             _selectedMarker = cluster.getId();
             manager?.updateMap();
           },
-          icon: await getClusterBitmap(markerSize, text: cluster.count.toString()),
+          icon: await _getClusterBitmap(markerSize.toInt(), cluster),
         );
       };
+
+  Future<BitmapDescriptor> _getClusterBitmap(int size, Cluster cluster) async {
+    final PictureRecorder pictureRecorder = PictureRecorder();
+    final Canvas canvas = Canvas(pictureRecorder);
+    final Paint paint1 = Paint()..color = PeanutTheme.almostBlack;
+    final Paint paint2 = Paint()..color = PeanutTheme.white;
+    final Paint paint3 = Paint()..color = cluster.getId() == _selectedMarker ? PeanutTheme.secondaryColor : PeanutTheme.darkOrange;
+
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2, paint1);
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2.2, paint2);
+    canvas.drawCircle(Offset(size / 2, size / 2), size / 2.8, paint3);
+
+    TextPainter painter = TextPainter(textDirection: TextDirection.ltr);
+    painter.text = TextSpan(
+      text: cluster.count.toString(),
+      style: TextStyle(fontSize: size / 2.5, color: cluster.getId() == _selectedMarker ? PeanutTheme.almostBlack : PeanutTheme.white, fontWeight: FontWeight.bold),
+    );
+    painter.layout();
+    painter.paint(canvas, Offset(size / 2 - painter.width / 2, size / 2 - painter.height / 2));
+
+    final img = await pictureRecorder.endRecording().toImage(size, size);
+    final data = await img.toByteData(format: ImageByteFormat.png);
+
+    return BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
+  }
 }

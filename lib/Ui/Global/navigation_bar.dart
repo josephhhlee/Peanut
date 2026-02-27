@@ -21,7 +21,7 @@ class PeanutNavigationBar extends StatelessWidget {
         notchSmoothness: NotchSmoothness.softEdge,
         leftCornerRadius: 30,
         rightCornerRadius: 30,
-        onTap: (index) => Properties.navigationBarIndex.value = index,
+        onTap: Properties.changeTab,
         backgroundColor: PeanutTheme.almostBlack,
         borderColor: PeanutTheme.secondaryColor,
         itemCount: icons.length,

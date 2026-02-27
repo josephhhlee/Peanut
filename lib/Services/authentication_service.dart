@@ -49,7 +49,7 @@ class AuthenticationService {
       if (googleSignInAccount != null && googleSignIn) await GoogleSignIn().disconnect();
     }
 
-    DataStore().setDataInitialized(false);
+    await DataStore().setDataInitialized(false);
     await checkIfGoogleSignIn().catchError((e) => log("Google Sign In Error: $e"));
     await FirebaseAuth.instance.signOut().catchError((e) => log("FirebaseAuth Logout Error: $e"));
     Navigation.navigator?.routeManager.clearAndPush(Uri.parse(LoginPage.routeName));

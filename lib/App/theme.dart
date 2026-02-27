@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PeanutTheme {
-  static const MaterialColor swatchColors = Colors.orange;
+  static const MaterialColor orange = Colors.orange;
   static const Color primaryColor = Color.fromARGB(255, 244, 187, 68);
   static const Color secondaryColor = Color.fromARGB(255, 243, 243, 62);
   static const Color backGroundColor = Color(0xFFF3F3F3);
@@ -13,14 +13,16 @@ class PeanutTheme {
   static const Color errorColor = Color.fromARGB(255, 255, 51, 51);
   static const Color darkOrange = Color.fromARGB(255, 255, 76, 0);
   static const Color grey = Colors.grey;
+  static const Color lightGrey = Color.fromARGB(255, 211, 211, 211);
 
   static const TextTheme defaultTextStyle = TextTheme();
 
   static ThemeData defaultTheme() => ThemeData(
-        primarySwatch: swatchColors,
+        primarySwatch: orange,
         primaryColor: primaryColor,
         backgroundColor: backGroundColor,
         textTheme: defaultTextStyle,
+        highlightColor: secondaryColor,
       );
 
   static Widget background(Widget child) => Container(

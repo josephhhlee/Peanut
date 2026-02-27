@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,7 +24,7 @@ void main({env = "dev"}) async {
   await DataStore().init();
   Properties().init();
 
-  if (env != "prod") await DataStore().pref.remove("onboarding");
+  if (env != "prod") await DataStore.pref.remove("onboarding");
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(statusBarColor: PeanutTheme.transparent, statusBarIconBrightness: Brightness.dark));
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
@@ -51,13 +50,19 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
-    if (state == AppLifecycleState.detached || state == AppLifecycleState.inactive) await DataStore().secureStorage.clearCache();
-    if (state != AppLifecycleState.resumed) {
-      NetworkService.listener?.pause();
-      MaintenanceService.listener?.pause();
+    if (state == AppLifecycleState.detached || state == AppLifecycleState.inactive) {
+      await DataStore().currentUser?.updateOnlineStatus(false);
+      await DataStore.secureStorage.clearCache();
     } else {
-      NetworkService.listener?.resume();
-      MaintenanceService.listener?.resume();
+      if (state != AppLifecycleState.resumed) {
+        await DataStore().currentUser?.updateOnlineStatus(false);
+        NetworkService.listener?.pause();
+        MaintenanceService.listener?.pause();
+      } else {
+        await DataStore().currentUser?.updateOnlineStatus(true);
+        NetworkService.listener?.resume();
+        MaintenanceService.listener?.resume();
+      }
     }
   }
 
@@ -73,6 +78,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     NetworkService.dispose();
     MaintenanceService.dispose();
     LocationService.dispose();
+    Properties.dispose();
     DataStore().dispose();
     super.dispose();
   }

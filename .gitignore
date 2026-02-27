@@ -48,3 +48,4 @@ test/
 
 # vsc launch file
 .vscode/
+.sync**

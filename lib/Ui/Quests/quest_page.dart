@@ -9,6 +9,7 @@ import 'package:peanut/App/theme.dart';
 import 'package:peanut/Models/quest_model.dart';
 import 'package:peanut/Models/user_model.dart';
 import 'package:peanut/Services/firestore_service.dart';
+import 'package:peanut/Ui/Messenger/chat_page.dart';
 import 'package:peanut/Utils/common_utils.dart';
 import 'dart:developer';
 
@@ -25,7 +26,7 @@ class QuestPage extends StatefulWidget {
 
 class _QuestPageState extends State<QuestPage> {
   late GoogleMapController? _mapController;
-  late final NutUser _user;
+  late final NutUser _questGiver;
   late final Quest _quest;
   late final LatLngBounds _mapBounds;
 
@@ -46,7 +47,7 @@ class _QuestPageState extends State<QuestPage> {
   }
 
   Future<void> _init() async {
-    _user = widget.args[0];
+    _questGiver = widget.args[0];
     _quest = widget.args[1] is String ? await DataStore().getQuest(widget.args[1]) : widget.args[1];
 
     final lat = _quest.mapModel!.lat;
@@ -115,7 +116,7 @@ class _QuestPageState extends State<QuestPage> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_initialised) return CommonUtils.loadingIndicator();
+    if (!_initialised) return CommonUtils.loadingIndicator(expand: true);
 
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -129,23 +130,30 @@ class _QuestPageState extends State<QuestPage> {
     );
   }
 
-  Widget _floatingBtn() => _user.uid == DataStore().currentUser!.uid || _quest.taker != null
+  Widget _floatingBtn() => _questGiver.uid == DataStore().currentUser!.uid || _quest.taker != null
       ? const SizedBox.shrink()
       : FloatingActionButton.extended(
           heroTag: "FAB",
           elevation: 0,
           onPressed: _onTakeQuest,
-          label: Row(
-            children: [
-              const Text(
-                "Take Quest",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(width: 10),
-              const Text("(-"),
-              CommonUtils.peanutCurrency(value: Configs.questDepositCost.toString()),
-              const Text(" Deposit)"),
-            ],
+          label: SizedBox(
+            width: 220,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text("Take Quest", maxLines: 1),
+                const SizedBox(width: 10),
+                const Text("(-"),
+                CommonUtils.peanutCurrency(value: Configs.questDepositCost.toString()),
+                const Flexible(
+                  child: Text(
+                    " Deposit)",
+                    maxLines: 1,
+                    overflow: TextOverflow.clip,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
 
@@ -163,7 +171,7 @@ class _QuestPageState extends State<QuestPage> {
                 _reward(),
                 const SizedBox(height: 20),
                 _objective(),
-                SizedBox(height: _user.uid == DataStore().currentUser!.uid ? 20 : 75),
+                SizedBox(height: _questGiver.uid == DataStore().currentUser!.uid ? 20 : 75),
               ],
             ),
           ),
@@ -173,7 +181,7 @@ class _QuestPageState extends State<QuestPage> {
   Widget _header() => Row(
         children: [
           Expanded(child: _headerDetails()),
-          CommonUtils.userImage(context: context, user: _user),
+          CommonUtils.userImage(context: context, user: _questGiver),
         ],
       );
 
@@ -184,34 +192,41 @@ class _QuestPageState extends State<QuestPage> {
         );
 
     Widget createdBy() => Text(
-          "By ${_user.uid == DataStore().currentUser!.uid ? "Me" : _user.displayName}",
+          "By ${_questGiver.uid == DataStore().currentUser!.uid ? "Me" : _questGiver.displayName}",
           style: const TextStyle(color: PeanutTheme.grey, fontWeight: FontWeight.bold),
         );
 
-    Widget messageBtn() => Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: TextButton(
-            style: TextButton.styleFrom(
-              elevation: 3,
-              backgroundColor: PeanutTheme.primaryColor,
-              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
-            ),
-            onPressed: () => false,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(
-                  Icons.message_rounded,
-                  color: PeanutTheme.almostBlack,
-                  size: 16,
-                ),
-                SizedBox(width: 5),
-                Text(
-                  "Contact Quest Giver",
-                  style: TextStyle(color: PeanutTheme.almostBlack, fontWeight: FontWeight.bold),
-                ),
-              ],
+    Widget messageBtn() => Hero(
+          tag: "MESSAGE",
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: TextButton(
+              style: TextButton.styleFrom(
+                elevation: 3,
+                backgroundColor: PeanutTheme.primaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(100)),
+              ),
+              onPressed: () async => await Navigation.push(context, ChatPage.routeName, args: _questGiver.uid),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Icon(
+                    Icons.message_rounded,
+                    color: PeanutTheme.almostBlack,
+                    size: 16,
+                  ),
+                  SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      "Contact Quest Giver",
+                      maxLines: 1,
+                      overflow: TextOverflow.fade,
+                      style: TextStyle(color: PeanutTheme.almostBlack, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -236,7 +251,7 @@ class _QuestPageState extends State<QuestPage> {
             ),
           ],
         ),
-        if (_user.uid != DataStore().currentUser!.uid) messageBtn(),
+        if (_questGiver.uid != DataStore().currentUser!.uid) messageBtn(),
       ],
     );
   }

@@ -33,6 +33,7 @@ class Configs {
   static late bool enableSuggestions;
   static late bool googleSignUp;
   static late bool appleSignUp;
+  static late RegExp urlRegex;
   static bool pause = false;
 
   static Future<void> initRemoteConfig() async {
@@ -45,6 +46,7 @@ class Configs {
       final android = Map.from(map["android"]);
       final currency = Map.from(map["currency"]);
       final signUps = Map.from(map["sign_ups"]);
+      final regex = Map.from(map["regex"]);
 
       displayNameCharLimit = charLimits["display_name"];
       emailCharLimit = charLimits["email"]!;
@@ -64,6 +66,7 @@ class Configs {
       questDepositCost = currency["quest_taker_deposit"];
       googleSignUp = signUps["google_sign_up"];
       appleSignUp = signUps["apple_sign_up"];
+      urlRegex = RegExp(regex["url"]);
     } catch (e) {
       log(e.toString());
       pause = true;

@@ -12,7 +12,8 @@ import 'package:peanut/Ui/Entrance/splash_screen_page.dart';
 import 'package:peanut/Ui/Global/home_page.dart';
 import 'package:peanut/Ui/Map/add_quest_page.dart';
 import 'package:peanut/Ui/Map/map_selection_page.dart';
-import 'package:peanut/Ui/General/quest_page.dart';
+import 'package:peanut/Ui/Quests/quest_page.dart';
+import 'package:peanut/Ui/Messenger/chat_page.dart';
 import 'package:peanut/Utils/animation_utils.dart';
 import 'package:velocity_x/velocity_x.dart';
 
@@ -47,6 +48,7 @@ class PeanutRouter {
       VerifyPage.routeName: (_, arg) => PeanutPage(child: VerifyPage(arg), pageName: VerifyPage.routeName),
       MapSelectionPage.routeName: (_, arg) => PeanutPage(child: MapSelectionPage(arg), pageName: MapSelectionPage.routeName),
       QuestPage.routeName: (_, arg) => PeanutPage(child: QuestPage(arg), pageName: QuestPage.routeName),
+      ChatPage.routeName: (_, arg) => PeanutPage(child: ChatPage(arg), pageName: ChatPage.routeName),
     };
   }
 

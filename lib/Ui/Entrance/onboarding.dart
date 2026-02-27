@@ -45,7 +45,7 @@ class _OnboardingState extends State<Onboarding> {
       }
     }
 
-    bool display = DataStore().pref.getBool(key) ?? true;
+    bool display = DataStore.pref.getBool(key) ?? true;
     if (display) await retrieveDetails();
   }
 
@@ -141,7 +141,7 @@ class _OnboardingState extends State<Onboarding> {
           child: ElevatedButton(
             onPressed: () async {
               if (pageAtEnd) {
-                await DataStore().pref.setBool(key, false);
+                await DataStore.pref.setBool(key, false);
                 setState(() => _details = null);
               } else {
                 _pageController.animateToPage(index + 1, duration: const Duration(milliseconds: 300), curve: Curves.fastOutSlowIn);
@@ -163,7 +163,7 @@ class _OnboardingState extends State<Onboarding> {
           right: 10,
           child: GestureDetector(
             onTap: () async {
-              await DataStore().pref.setBool(key, false);
+              await DataStore.pref.setBool(key, false);
               setState(() => _details = null);
             },
             child: const Text(

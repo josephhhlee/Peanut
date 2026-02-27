@@ -1,11 +1,10 @@
-import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:peanut/App/theme.dart';
 import 'package:peanut/Services/authentication_service.dart';
 import 'package:peanut/Ui/Map/peanut_map.dart';
+import 'package:peanut/Ui/Messenger/messenger.dart';
 import 'package:peanut/Ui/Quests/quest_list.dart';
-import 'package:peanut/Utils/common_utils.dart';
 
 class Properties {
   static Properties? _instance;
@@ -16,31 +15,34 @@ class Properties {
 
   void init() {
     navigationBarIndex = ValueNotifier(0);
-    navigationQueue = ListQueue();
+    navigationQueue = [0];
+  }
+
+  static void dispose() {
+    navigationBarIndex.dispose();
   }
 
   static late ValueNotifier<int> navigationBarIndex;
-  static late ListQueue<int> navigationQueue;
+  static late List<int> navigationQueue;
+  static bool warnQuitApp = false;
+
+  static changeTab(int tab) {
+    navigationBarIndex.value = tab;
+    navigationQueue.add(tab);
+  }
 
   static reset() {
     navigationBarIndex.value = 0;
     navigationQueue.clear();
   }
 
-  static bool _warnQuitApp = false;
   static Future<bool> onBack(BuildContext context) async {
-    if (navigationQueue.isEmpty) {
-      if (!_warnQuitApp) {
-        CommonUtils.toast(context, "Press back again to exit");
-        _warnQuitApp = true;
-        return false;
-      }
-      return true;
+    if (navigationQueue.isNotEmpty) {
+      navigationQueue.removeLast();
+      navigationBarIndex.value = navigationQueue.isNotEmpty ? navigationQueue.last : 0;
+      return false;
     }
-
-    int index = navigationQueue.removeLast();
-    navigationBarIndex.value = index;
-    return false;
+    return true;
   }
 
   static final Map<String, dynamic> _navigationScreens = {
@@ -49,14 +51,14 @@ class Properties {
       "screen": const PeanutMap(),
       "icon": FontAwesomeIcons.mapLocation,
     },
-    "Messenger": {
+    "Messages": {
       "appBar": AppBar(
-        title: const Text("Messenger"),
+        title: const Text("Messages"),
         backgroundColor: PeanutTheme.primaryColor,
         elevation: 0,
         automaticallyImplyLeading: false,
       ),
-      "screen": Container(),
+      "screen": const Messenger(),
       "icon": FontAwesomeIcons.solidMessage,
     },
     "Quests": {
@@ -95,8 +97,6 @@ class MapProperties {
     "Admin": "Administration",
     "Apt": "Apartment",
     "Ave": "Avenue",
-    "Aye": "AYE",
-    "Bke": "BKE",
     "Bldg": "Building",
     "Blk": "Block",
     "Blvd": "Boulevard",
@@ -104,7 +104,6 @@ class MapProperties {
     "Bt": "Bukit",
     "Budd": "Buddhist",
     "Cath": "Cathedral",
-    "Cbd": "CBD",
     "Cc": "Community Club",
     "Chbrs": "Chambers",
     "Cine": "Cinema",
@@ -114,14 +113,12 @@ class MapProperties {
     "Cp": "Carpark",
     "Cplx": "Complex",
     "Cres": "Crescent",
-    "Cte": "CTE",
     "Ctr": "Centre",
     "Ctrl": "Central",
     "Cwealth": "CommonWealth",
     "Dept": "Department",
     "Div": "Division",
     "Dr": "Drive",
-    "Ecp": "ECP",
     "Edn": "Education",
     "Env": "Environment",
     "Est": "Estate",
@@ -145,21 +142,17 @@ class MapProperties {
     "Jln": "Jalan",
     "Jnr": "Junior",
     "Kg": "Kampong",
-    "Kje": "KJE",
-    "Kpe": "KPE",
     "Lib": "Library",
     "Lk": "Link",
     "Lor": "Lorong",
     "Mai": "Maisonette",
     "Man": "Mansion",
-    "Mce": "MCE",
     "Meth": "Methodist",
     "Min": "Ministy",
     "Mkt": "Market",
     "Mt": "Mount",
     "Natl": "National",
     "Nth": "North",
-    "Pie": "PIE",
     "Pk": "Park",
     "Pl": "Place",
     "Pri": "Primary",
@@ -167,7 +160,6 @@ class MapProperties {
     "Rd": "Road",
     "Sch": "School",
     "Sec": "Secondary",
-    "Sle": "SLE",
     "Sg": "Singapore",
     "Sq": "Square",
     "St": "Street",
@@ -177,7 +169,6 @@ class MapProperties {
     "Tc": "Town Council",
     "Ter": "Terrace",
     "Tg": "Tanjong",
-    "Tpe": "TPE",
     "Upp": "Upper",
   };
 }

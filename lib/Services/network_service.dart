@@ -8,6 +8,8 @@ import 'package:peanut/Ui/General/maintenance_page.dart';
 import 'package:peanut/Ui/General/no_network_page.dart';
 import 'package:peanut/Ui/General/page_not_found_page.dart';
 import 'package:peanut/Ui/Entrance/splash_screen_page.dart';
+import 'package:peanut/Ui/Messenger/chat_page.dart';
+import 'package:peanut/Ui/Quests/quest_page.dart';
 
 class NetworkService {
   static final Connectivity _connectivity = Connectivity();
@@ -47,8 +49,12 @@ class NetworkService {
       _networkTimer?.cancel();
 
       if (_pageToResume != null) {
-        var nonResumablePage =
-            _pageToResume!.path.isEmpty || _pageToResume!.path == PageNotFoundPage.routeName || _pageToResume!.path == NoNetworkPage.routeName || _pageToResume!.path == MaintenancePage.routeName;
+        var nonResumablePage = _pageToResume!.path.isEmpty ||
+            _pageToResume!.path == PageNotFoundPage.routeName ||
+            _pageToResume!.path == NoNetworkPage.routeName ||
+            _pageToResume!.path == MaintenancePage.routeName ||
+            _pageToResume!.path == QuestPage.routeName ||
+            _pageToResume!.path == ChatPage.routeName;
 
         if (nonResumablePage) {
           Navigation.navigator?.routeManager.clearAndPush(Uri.parse(SplashScreenPage.routeName));

@@ -8,11 +8,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:peanut/App/configs.dart';
 import 'package:peanut/App/data_store.dart';
+import 'package:peanut/App/properties.dart';
 import 'package:peanut/App/router.dart';
 import 'package:peanut/App/theme.dart';
 import 'package:peanut/Models/quest_model.dart';
 import 'package:peanut/Models/user_model.dart';
-import 'package:peanut/Ui/General/quest_page.dart';
+import 'package:peanut/Ui/Quests/quest_page.dart';
 import 'package:peanut/Ui/Quests/sorting.dart';
 import 'package:peanut/Utils/common_utils.dart';
 import 'package:peanut/Utils/scroll_utils.dart';
@@ -48,129 +49,30 @@ class _PeanutMapState extends State<PeanutMap> {
 
   @override
   Widget build(BuildContext context) {
-    return PortalTarget(
-      visible: true,
-      portalFollower: _overLay(),
-      anchor: const Aligned(
-        target: Alignment.bottomCenter,
-        follower: Alignment.bottomCenter,
-        offset: Offset(0, -90),
-      ),
-      child: _body(),
-    );
-  }
-
-  Widget _overLay() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.9, maxHeight: MediaQuery.of(context).size.height * 0.35),
-        color: PeanutTheme.backGroundColor,
-        child: ValueListenableBuilder(
-          valueListenable: _viewModel.subQuestList,
-          builder: (_, value, __) => value == null
-              ? const SizedBox.shrink()
-              : DisableScrollGlow(
-                  child: ListView.builder(
-                    key: Key(value.map((e) => e.toJson()).toString()),
-                    padding: const EdgeInsets.all(0),
-                    shrinkWrap: true,
-                    itemCount: value.length,
-                    itemBuilder: (context, index) => _questCard(value[index]),
-                  ),
-                ),
+    return WillPopScope(
+      onWillPop: () async {
+        if (_panelController.isPanelOpen || _viewModel.subQuestList.isNotEmpty) {
+          _panelController.close();
+          _viewModel.clearSelectedMarker();
+          return false;
+        }
+        if (Properties.navigationQueue.isEmpty && !Properties.warnQuitApp) {
+          CommonUtils.toast(context, "Press back again to exit");
+          Properties.warnQuitApp = true;
+          return false;
+        }
+        return true;
+      },
+      child: PortalTarget(
+        visible: true,
+        portalFollower: _SubQuestList(viewModel: _viewModel),
+        anchor: const Aligned(
+          target: Alignment.bottomCenter,
+          follower: Alignment.bottomCenter,
+          offset: Offset(0, -120),
         ),
+        child: _body(),
       ),
-    );
-  }
-
-  Widget _questCard(Quest quest) => CachedUserData(
-        key: Key(quest.id),
-        uid: quest.creator,
-        builder: (user) => Material(
-          child: InkWell(
-            highlightColor: PeanutTheme.primaryColor.withOpacity(0.5),
-            onTap: () => user == null ? false : Navigation.push(context, QuestPage.routeName, args: [user, quest]),
-            child: Container(
-              padding: const EdgeInsets.all(10),
-              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: PeanutTheme.greyDivider))),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CommonUtils.userImage(context: context, user: user, size: 65),
-                  const SizedBox(width: 15),
-                  Flexible(fit: FlexFit.tight, child: _questDetails(quest, user)),
-                ],
-              ),
-            ),
-          ),
-        ),
-      );
-
-  Widget _questDetails(Quest quest, NutUser? user) {
-    Widget name() => Text(
-          user?.displayName ?? "",
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(fontWeight: FontWeight.bold, color: PeanutTheme.darkOrange),
-        );
-
-    Widget title() => Text(
-          quest.title!,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        );
-
-    Widget address() => Row(
-          children: [
-            const Icon(Icons.location_on_rounded, color: PeanutTheme.almostBlack, size: 14),
-            const SizedBox(width: 5),
-            Expanded(
-              child: Text(
-                quest.mapModel!.addr,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(color: PeanutTheme.grey),
-              ),
-            ),
-          ],
-        );
-
-    Widget distance() => Text(
-          CommonUtils.getDistance(quest.mapModel!.lat, quest.mapModel!.lng),
-          style: const TextStyle(color: PeanutTheme.grey),
-        );
-
-    Widget reward() => Row(
-          children: [
-            const Text(
-              "Rewards",
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 5),
-            Expanded(
-              child: CommonUtils.peanutCurrency(
-                value: quest.rewards.toString(),
-                color: PeanutTheme.primaryColor,
-                textSize: 14,
-                iconSize: 70,
-              ),
-            ),
-          ],
-        );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        name(),
-        title(),
-        const SizedBox(height: 15),
-        address(),
-        distance(),
-        const SizedBox(height: 15),
-        reward(),
-      ],
     );
   }
 
@@ -563,6 +465,159 @@ class _NearbyQuestsState extends State<_NearbyQuests> {
     Widget reward() => Row(
           children: [
             const Text("Rewards"),
+            const SizedBox(width: 5),
+            Expanded(
+              child: CommonUtils.peanutCurrency(
+                value: quest.rewards.toString(),
+                color: PeanutTheme.primaryColor,
+                textSize: 14,
+                iconSize: 70,
+              ),
+            ),
+          ],
+        );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        name(),
+        title(),
+        const SizedBox(height: 15),
+        address(),
+        distance(),
+        const SizedBox(height: 15),
+        reward(),
+      ],
+    );
+  }
+}
+
+class _SubQuestList extends StatefulWidget {
+  final PeanutMapViewModel viewModel;
+
+  const _SubQuestList({required this.viewModel});
+
+  @override
+  State<_SubQuestList> createState() => __SubQuestListState();
+}
+
+class __SubQuestListState extends State<_SubQuestList> {
+  final List<Quest> _list = [];
+  final Duration duration = const Duration(milliseconds: 300);
+  Offset offset = const Offset(0, 1);
+
+  @override
+  void initState() {
+    widget.viewModel.subListTrigger = _triggerSlide;
+    super.initState();
+  }
+
+  void _slideUp() {
+    setState(() => offset = const Offset(0, 0));
+  }
+
+  void _slideDown() {
+    setState(() => offset = const Offset(0, 1));
+  }
+
+  void _triggerSlide(List<Quest> list) {
+    _list.clear();
+    _list.addAll(list);
+    _slideDown();
+    if (list.isNotEmpty) _slideUp();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSlide(
+      offset: offset,
+      duration: duration,
+      curve: Curves.fastOutSlowIn,
+      child: _list.isEmpty
+          ? const SizedBox.shrink()
+          : ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.9, maxHeight: MediaQuery.of(context).size.height * 0.6),
+                color: PeanutTheme.backGroundColor,
+                child: DisableScrollGlow(
+                  child: ListView.builder(
+                    key: Key(_list.map((e) => e.id).toString()),
+                    padding: const EdgeInsets.all(0),
+                    shrinkWrap: true,
+                    itemCount: _list.length,
+                    itemBuilder: (context, index) => _questCard(_list[index]),
+                  ),
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _questCard(Quest quest) => CachedUserData(
+        key: Key(quest.id),
+        uid: quest.creator,
+        builder: (user) => Material(
+          child: InkWell(
+            highlightColor: PeanutTheme.primaryColor.withOpacity(0.5),
+            onTap: () => user == null ? false : Navigation.push(context, QuestPage.routeName, args: [user, quest]),
+            child: Container(
+              padding: const EdgeInsets.all(10),
+              decoration: const BoxDecoration(border: Border(bottom: BorderSide(color: PeanutTheme.greyDivider))),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonUtils.userImage(context: context, user: user, size: 65),
+                  const SizedBox(width: 15),
+                  Flexible(fit: FlexFit.tight, child: _questDetails(quest, user)),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+  Widget _questDetails(Quest quest, NutUser? user) {
+    Widget name() => Text(
+          user?.displayName ?? "",
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.bold, color: PeanutTheme.darkOrange),
+        );
+
+    Widget title() => Text(
+          quest.title!,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+        );
+
+    Widget address() => Row(
+          children: [
+            const Icon(Icons.location_on_rounded, color: PeanutTheme.almostBlack, size: 14),
+            const SizedBox(width: 5),
+            Expanded(
+              child: Text(
+                quest.mapModel!.addr,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(color: PeanutTheme.grey),
+              ),
+            ),
+          ],
+        );
+
+    Widget distance() => Text(
+          CommonUtils.getDistance(quest.mapModel!.lat, quest.mapModel!.lng),
+          style: const TextStyle(color: PeanutTheme.grey),
+        );
+
+    Widget reward() => Row(
+          children: [
+            const Text(
+              "Rewards",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(width: 5),
             Expanded(
               child: CommonUtils.peanutCurrency(

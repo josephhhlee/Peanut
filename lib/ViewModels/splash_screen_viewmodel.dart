@@ -30,7 +30,10 @@ class SplashScreenViewModel {
     }
   }
 
-  Future<void> initCurrentUser() async => datastore.currentUser = NutUser.fromSnapshot(await FirestoreService.usersCol.doc(FirebaseAuth.instance.currentUser!.uid).get());
+  Future<void> initCurrentUser() async {
+    datastore.currentUser = NutUser.fromSnapshot(await FirestoreService.usersCol.doc(FirebaseAuth.instance.currentUser!.uid).get());
+    await datastore.currentUser?.updateOnlineStatus(true);
+  }
 
   Future<void> initMapTheme() async => datastore.mapTheme ??= await rootBundle.loadString('assets/map_theme.json');
 

@@ -11,6 +11,8 @@ class NutUser {
   late String displayName;
   late String? displayPhoto;
   late bool verified;
+  late bool online;
+  late int lastOnline;
 
   NutUser({required this.uid, required this.email, required this.displayName, this.displayPhoto, this.verified = false, required this.createdOn});
 
@@ -23,11 +25,13 @@ class NutUser {
     displayPhoto = data["displayPhoto"];
     verified = data["verified"];
     createdOn = data["createdOn"]?.millisecondsSinceEpoch;
+    online = data["online"];
+    lastOnline = data["lastOnline"].millisecondsSinceEpoch;
 
     DataStore().addUserCache(this);
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> _toJson() => {
         "uid": uid,
         "email": email,
         "displayName": displayName,
@@ -36,9 +40,9 @@ class NutUser {
         "createdOn": DateTime.fromMillisecondsSinceEpoch(createdOn),
       };
 
-  void create(Transaction transaction) => transaction.set(FirestoreService.usersCol.doc(uid), toJson());
+  void create(Transaction transaction) => transaction.set(FirestoreService.usersCol.doc(uid), _toJson());
 
-  void update(Transaction transaction) => transaction.update(FirestoreService.usersCol.doc(uid), toJson());
+  void update(Transaction transaction) => transaction.update(FirestoreService.usersCol.doc(uid), _toJson());
 
   Future<int> getPeanutCurrency() async {
     final doc = await FirestoreService.peanutCurrencyDoc(uid).get();
@@ -48,7 +52,11 @@ class NutUser {
   void updatePeanutCurrency(int value, Transaction transaction) {
     final ref = FirestoreService.peanutCurrencyDoc(uid);
     final data = {"value": value};
-    transaction.update(ref, data);
+    transaction.set(ref, data, SetOptions(merge: true));
+  }
+
+  Future<void> updateOnlineStatus(bool online) async {
+    await FirestoreService.usersCol.doc(uid).update({"online": online, "lastOnline": DateTime.now()});
   }
 }
 

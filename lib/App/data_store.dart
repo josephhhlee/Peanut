@@ -11,14 +11,15 @@ import 'package:peanut/Models/user_model.dart';
 import 'package:peanut/Services/firestore_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:developer';
+import 'package:flutter_chat_types/flutter_chat_types.dart' show PreviewData;
 
 class DataStore with ChangeNotifier {
   static DataStore? _instance;
   DataStore._();
   factory DataStore() => _instance ??= DataStore._();
 
-  late final SharedPreferences pref;
-  late final SecureStorage secureStorage;
+  static late final SharedPreferences pref;
+  static late final SecureStorage secureStorage;
 
   Future<void> init() async {
     pref = await SharedPreferences.getInstance();
@@ -28,6 +29,7 @@ class DataStore with ChangeNotifier {
   @override
   void dispose() {
     _peanutCurrencyListener?.cancel();
+    setDataInitialized(false);
     super.dispose();
   }
 
@@ -49,10 +51,11 @@ class DataStore with ChangeNotifier {
     }
   }
 
-  void setDataInitialized(bool dataInitialised) {
+  Future<void> setDataInitialized(bool dataInitialised) async {
     this.dataInitialised = dataInitialised;
 
     if (!dataInitialised) {
+      await currentUser?.updateOnlineStatus(false);
       currentUser = null;
       currentUserPeanutCurrency = null;
       _peanutCurrencyListener?.cancel();
@@ -147,6 +150,22 @@ class DataStore with ChangeNotifier {
       log(e.toString());
       return null;
     }
+  }
+
+  static Future<void> storeLinkPreview(String link, PreviewData preview) async {
+    final data = {"preview": jsonEncode(preview), "timestamp": DateTime.now().millisecondsSinceEpoch};
+    await pref.setString("$link-preview", jsonEncode(data));
+  }
+
+  static PreviewData? getLinkPreview(String link) {
+    final rawData = pref.getString("$link-preview");
+    if (rawData == null) return null;
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final offset = now - 604800000;
+    final data = jsonDecode(rawData);
+    if (data["timestamp"] < offset) return null;
+    return PreviewData.fromJson(jsonDecode(data["preview"]));
   }
 }
 
